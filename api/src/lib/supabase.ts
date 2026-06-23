@@ -9,7 +9,9 @@ const serviceKey =
   process.env.SB_SERVICE_KEY ||
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SERVICE_KEY ||
-  process.env.SERVICE_ROLE_KEY;
+  process.env.SERVICE_ROLE_KEY ||
+  process.env.service_role ||
+  process.env.service_role_key;
 
 if (!url || !serviceKey) {
   // On NE jette PAS au démarrage (sinon crash-loop sur Railway) : le serveur boote,
