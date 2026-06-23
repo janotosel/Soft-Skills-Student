@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { existsSync } from "fs";
+import { resolve, join } from "path";
 import express from "express";
 import cors from "cors";
 import { sessionRouter } from "./routes/session";
@@ -32,6 +34,25 @@ app.use("/session", sessionRouter);
 app.use("/chat", chatRouter);
 app.use("/generate-summary", summaryRouter);
 app.use("/student", studentRouter);
+
+// Sert le front buildé (web/dist) sur la même origine, avec fallback SPA.
+const webDist = [
+  resolve(__dirname, "../../web/dist"), // depuis api/dist/server.js -> web/dist
+  resolve(process.cwd(), "web/dist"),
+  resolve(process.cwd(), "../web/dist"),
+].find((p) => existsSync(p));
+
+if (webDist) {
+  console.log(`[api] front servi depuis ${webDist}`);
+  app.use(express.static(webDist));
+  // Toute route GET non-API renvoie l'app (routing côté client).
+  app.get("*", (_req, res) => res.sendFile(join(webDist, "index.html")));
+} else {
+  console.warn("[api] web/dist introuvable — le front n'est pas servi.");
+  app.get("/", (_req, res) =>
+    res.type("text").send("API en ligne. Front non buildé (web/dist absent)."),
+  );
+}
 
 const port = Number(process.env.PORT ?? 8787);
 app.listen(port, () => {

@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+// Vide = même origine (le front est servi par l'API). En dev, mettre VITE_API_URL=http://localhost:8787.
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export interface Session {
   sessionId: string;
