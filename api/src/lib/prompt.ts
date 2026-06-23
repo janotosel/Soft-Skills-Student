@@ -1,29 +1,8 @@
-import { readFileSync } from "fs";
-import { resolve } from "path";
 import { phaseGuide, type Phase } from "./phases";
+import { BASE_SYSTEM_PROMPT } from "./systemPrompt";
 import type { PastBilan } from "./db";
 
-function loadBaseSystemPrompt(): string {
-  const candidates = [
-    process.env.SYSTEM_PROMPT_PATH,
-    resolve(__dirname, "../prompts/system.md"),
-    resolve(__dirname, "../../src/prompts/system.md"), // depuis dist/
-    resolve(process.cwd(), "src/prompts/system.md"),
-  ].filter(Boolean) as string[];
-
-  for (const p of candidates) {
-    try {
-      return readFileSync(p, "utf-8");
-    } catch {
-      /* essaie le suivant */
-    }
-  }
-  throw new Error(
-    "System prompt introuvable. Vérifie api/src/prompts/system.md ou SYSTEM_PROMPT_PATH.",
-  );
-}
-
-const BASE = loadBaseSystemPrompt();
+const BASE = BASE_SYSTEM_PROMPT;
 
 function frenchDate(iso: string): string {
   // Format simple AAAA-MM -> "mois AAAA" sans dépendance externe.

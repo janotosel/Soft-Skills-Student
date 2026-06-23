@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { anthropic, CHAT_MODEL } from "../lib/anthropic";
+import { ai, AI_MODEL } from "../lib/ai";
 import { buildSummaryInstruction, formatPastBilans } from "../lib/prompt";
 import { supabase } from "../lib/supabase";
 import {
@@ -57,8 +57,8 @@ summaryRouter.post("/", async (req, res) => {
       pastBilansText = formatPastBilans(bilans);
     }
 
-    const completion = await anthropic.messages.create({
-      model: CHAT_MODEL,
+    const completion = await ai.chat.completions.create({
+      model: AI_MODEL,
       max_tokens: 1500,
       messages: [
         {
@@ -68,9 +68,7 @@ summaryRouter.post("/", async (req, res) => {
       ],
     });
 
-    const text = completion.content
-      .map((b) => (b.type === "text" ? b.text : ""))
-      .join("");
+    const text = completion.choices[0]?.message?.content ?? "";
 
     const payload = safeParseJson(text);
     if (!payload) {

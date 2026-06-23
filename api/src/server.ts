@@ -5,6 +5,7 @@ import { sessionRouter } from "./routes/session";
 import { chatRouter } from "./routes/chat";
 import { summaryRouter } from "./routes/summary";
 import { studentRouter } from "./routes/student";
+import { supabaseConfigured } from "./lib/supabase";
 
 const app = express();
 app.use(express.json({ limit: "256kb" }));
@@ -14,7 +15,18 @@ app.use(
   }),
 );
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req, res) =>
+  res.json({
+    ok: true,
+    supabaseConfigured,
+    aiConfigured: Boolean(
+      process.env.OPENROUTER_API_KEY ||
+        process.env.OPENROUTER_KEY ||
+        process.env.OPENROUTER ||
+        process.env.OPENAI_API_KEY,
+    ),
+  }),
+);
 
 app.use("/session", sessionRouter);
 app.use("/chat", chatRouter);

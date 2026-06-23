@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { anthropic, CHAT_MODEL } from "../lib/anthropic";
+import { ai, AI_MODEL } from "../lib/ai";
 import { buildSystemPrompt, formatPastBilans } from "../lib/prompt";
 import { phaseForUserTurns } from "../lib/phases";
 import {
@@ -53,27 +53,23 @@ chatRouter.post("/", async (req, res) => {
     res.flushHeaders?.();
 
     let full = "";
-    const stream = anthropic.messages.stream({
-      model: CHAT_MODEL,
+    const stream = await ai.chat.completions.create({
+      model: AI_MODEL,
       max_tokens: 1024,
-      system: buildSystemPrompt(phase, pastBilansText),
-      messages,
+      stream: true,
+      messages: [
+        { role: "system", content: buildSystemPrompt(phase, pastBilansText) },
+        ...messages,
+      ],
     });
 
-    stream.on("text", (delta) => {
-      full += delta;
-      res.write(`event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`);
-    });
-
-    stream.on("error", (err) => {
-      console.error("[chat] stream error", err);
-      res.write(
-        `event: error\ndata: ${JSON.stringify({ error: "stream" })}\n\n`,
-      );
-      res.end();
-    });
-
-    await stream.finalMessage();
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content ?? "";
+      if (delta) {
+        full += delta;
+        res.write(`event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`);
+      }
+    }
 
     // Persiste la réponse de l'agent + met à jour la phase de la session.
     await insertMessage(sessionId, "assistant", full);

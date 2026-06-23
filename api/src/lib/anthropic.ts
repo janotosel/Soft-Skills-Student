@@ -1,8 +1,2 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-// Sonnet : bon ratio qualité/latence pour du conversationnel (brief §7).
-export const CHAT_MODEL = "claude-sonnet-4-6";
-
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY ?? "",
-});
+// Compat : l'IA passe désormais par OpenRouter (Kimi). Voir ./ai.
+export { ai, ai as anthropic, AI_MODEL, AI_MODEL as CHAT_MODEL } from "./ai";
