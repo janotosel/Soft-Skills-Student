@@ -27,6 +27,10 @@ app.get("/health", (_req, res) =>
         process.env.OPENROUTER ||
         process.env.OPENAI_API_KEY,
     ),
+    // Diagnostic : noms (jamais valeurs) des variables Supabase/IA détectées.
+    detectedEnvKeys: Object.keys(process.env)
+      .filter((k) => /supa|service|openrouter|openai|anthropic/i.test(k))
+      .sort(),
   }),
 );
 
