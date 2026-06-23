@@ -1,0 +1,17 @@
+{
+  "name": "soft-skills-student",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MVP — Outil de bilan soft skills & exploration d'orientation pour lycéens",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=api & npm run dev --workspace=web",
+    "dev:api": "npm run dev --workspace=api",
+    "dev:web": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=api && npm run build --workspace=web",
+    "start": "npm run start --workspace=api"
+  }
+}
