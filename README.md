@@ -14,10 +14,18 @@ Lycéen (web chat, mobile-first)
   → Supabase (sessions / messages / summaries), RLS verrouillé, mode anonyme
 ```
 
-- **`web/`** — front Vite + React (chat + récap + consentement RGPD).
-- **`api/`** — API Express (Node/TS) : `/session`, `/chat` (SSE), `/generate-summary`, `/health`.
-- **`supabase/`** — migration SQL (3 tables + RLS) + Edge Function de purge (>30 j).
+- **`web/`** — front Vite + React (consentement RGPD, identité/code de suivi, chat, récap, timeline).
+- **`api/`** — API Express (Node/TS) : `/session`, `/chat` (SSE), `/generate-summary`, `/student` (+`/resume`, `/timeline`), `/health`.
+- **`supabase/`** — migrations SQL (tables + RLS + élèves) + Edge Function de purge (>30 j, sessions anonymes seulement).
 - **`docs/`** — `system-prompt.md` (prompt serveur affiné) et `conversations-test.md` (golden examples).
+
+## Suivi longitudinal (bilan annuel)
+
+L'élève peut créer un **profil pseudonyme** (un surnom optionnel + un **code** à conserver, aucun nom/email).
+En revenant chaque année avec son code, il refait le point : l'agent reçoit ses bilans passés en coulisse et
+**relance** dessus ("l'an dernier tu disais X, ça a bougé ?") sans jamais l'enfermer. Une **timeline** montre l'évolution,
+et le récap inclut un champ *évolution*. Les sessions rattachées à un élève **ne sont pas purgées** (le suivi pluriannuel en dépend).
+Les sessions anonymes "one-shot" restent purgées après 30 jours.
 
 ## Démarrage local
 

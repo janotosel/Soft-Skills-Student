@@ -1,8 +1,13 @@
 import { Router } from "express";
 import { anthropic, CHAT_MODEL } from "../lib/anthropic";
-import { SUMMARY_INSTRUCTION } from "../lib/prompt";
+import { buildSummaryInstruction, formatPastBilans } from "../lib/prompt";
 import { supabase } from "../lib/supabase";
-import { authSession, loadHistory, updateSession } from "../lib/db";
+import {
+  authSession,
+  loadHistory,
+  updateSession,
+  loadStudentBilans,
+} from "../lib/db";
 
 export const summaryRouter = Router();
 
@@ -45,13 +50,20 @@ summaryRouter.post("/", async (req, res) => {
       .map((m) => `${m.role === "user" ? "Élève" : "Agent"}: ${m.content}`)
       .join("\n");
 
+    // Suivi longitudinal : si l'élève a des bilans passés, on demande un champ "évolution".
+    let pastBilansText = "";
+    if (session.student_id) {
+      const bilans = await loadStudentBilans(session.student_id, sessionId);
+      pastBilansText = formatPastBilans(bilans);
+    }
+
     const completion = await anthropic.messages.create({
       model: CHAT_MODEL,
       max_tokens: 1500,
       messages: [
         {
           role: "user",
-          content: `Conversation :\n\n${transcript}\n\n${SUMMARY_INSTRUCTION}`,
+          content: `Conversation :\n\n${transcript}\n\n${buildSummaryInstruction(pastBilansText)}`,
         },
       ],
     });

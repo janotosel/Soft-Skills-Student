@@ -17,10 +17,14 @@ Deno.serve(async (_req) => {
 
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
+    // On ne purge QUE les sessions anonymes one-shot (student_id IS NULL).
+    // Les sessions rattachées à un élève sont conservées pour le suivi pluriannuel.
+    // NB : un usage établissement réel nécessitera consentement parental + registre RGPD (brief §10).
     // messages & summaries partent en cascade via ON DELETE CASCADE.
     const { data, error } = await supabase
       .from("sessions")
       .delete()
+      .is("student_id", null)
       .lt("created_at", cutoff)
       .select("id");
 

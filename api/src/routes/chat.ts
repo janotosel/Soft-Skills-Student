@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { anthropic, CHAT_MODEL } from "../lib/anthropic";
-import { buildSystemPrompt } from "../lib/prompt";
+import { buildSystemPrompt, formatPastBilans } from "../lib/prompt";
 import { phaseForUserTurns } from "../lib/phases";
 import {
   authSession,
@@ -8,6 +8,7 @@ import {
   insertMessage,
   countUserTurns,
   updateSession,
+  loadStudentBilans,
 } from "../lib/db";
 
 export const chatRouter = Router();
@@ -38,6 +39,13 @@ chatRouter.post("/", async (req, res) => {
       content: m.content,
     }));
 
+    // Suivi longitudinal : injecte les bilans passés si la session est rattachée à un élève.
+    let pastBilansText = "";
+    if (session.student_id) {
+      const bilans = await loadStudentBilans(session.student_id, sessionId);
+      pastBilansText = formatPastBilans(bilans);
+    }
+
     // En-têtes SSE.
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -48,7 +56,7 @@ chatRouter.post("/", async (req, res) => {
     const stream = anthropic.messages.stream({
       model: CHAT_MODEL,
       max_tokens: 1024,
-      system: buildSystemPrompt(phase),
+      system: buildSystemPrompt(phase, pastBilansText),
       messages,
     });
 

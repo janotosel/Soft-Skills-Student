@@ -3,12 +3,20 @@ import type { Summary as SummaryData } from "../lib/api";
 interface Props {
   summary: SummaryData;
   onRestart: () => void;
+  onViewTimeline?: () => void; // présent si l'élève a un profil de suivi
 }
 
-export function Summary({ summary, onRestart }: Props) {
+export function Summary({ summary, onRestart, onViewTimeline }: Props) {
   return (
     <div className="summary">
       <h1>Ton récap 📝</h1>
+
+      {summary.evolution && (
+        <section className="evolution-card">
+          <h2>Depuis la dernière fois</h2>
+          <p>{summary.evolution}</p>
+        </section>
+      )}
 
       <section>
         <h2>Ce que j'ai entendu</h2>
@@ -66,7 +74,12 @@ export function Summary({ summary, onRestart }: Props) {
 
       <p className="disclaimer">{summary.disclaimer}</p>
 
-      <button onClick={onRestart}>Recommencer une discussion</button>
+      {onViewTimeline && (
+        <button onClick={onViewTimeline}>Voir tout mon parcours 🧭</button>
+      )}
+      <button className="secondary" onClick={onRestart}>
+        Revenir à l'accueil
+      </button>
     </div>
   );
 }

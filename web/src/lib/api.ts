@@ -14,11 +14,69 @@ export interface Summary {
     voies_post_bac: string[];
   };
   pour_aller_plus_loin: string[];
+  evolution?: string;
   disclaimer: string;
 }
 
-export async function createSession(): Promise<Session> {
-  const res = await fetch(`${API_URL}/session`, { method: "POST" });
+export interface Bilan {
+  created_at: string;
+  payload: Summary;
+}
+
+export interface Student {
+  studentId: string;
+  token: string;
+  accessCode: string;
+  pseudonym: string | null;
+  bilans?: Bilan[];
+}
+
+// Crée un profil élève pseudonyme (suivi pluriannuel).
+export async function createStudent(pseudonym?: string): Promise<Student> {
+  const res = await fetch(`${API_URL}/student`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pseudonym }),
+  });
+  if (!res.ok) throw new Error("createStudent failed");
+  return res.json();
+}
+
+// Retrouve un élève via son code + renvoie ses bilans passés.
+export async function resumeStudent(accessCode: string): Promise<Student> {
+  const res = await fetch(`${API_URL}/student/resume`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessCode }),
+  });
+  if (res.status === 404) throw new Error("code_inconnu");
+  if (!res.ok) throw new Error("resumeStudent failed");
+  return res.json();
+}
+
+export async function fetchTimeline(student: Student): Promise<Bilan[]> {
+  const res = await fetch(`${API_URL}/student/timeline`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentId: student.studentId,
+      token: student.token,
+    }),
+  });
+  if (!res.ok) throw new Error("timeline failed");
+  const data = await res.json();
+  return data.bilans as Bilan[];
+}
+
+// Crée une session, éventuellement rattachée à un élève.
+export async function createSession(student?: Student | null): Promise<Session> {
+  const res = await fetch(`${API_URL}/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      student ? { studentId: student.studentId, token: student.token } : {},
+    ),
+  });
   if (!res.ok) throw new Error("createSession failed");
   return res.json();
 }
